@@ -65,6 +65,19 @@ def hybrid_recommendation(job_input, freelancers_df, interactions):
     freelancers_df['final_score'] = (
         0.6 * freelancers_df['content_score'] + 0.4 * freelancers_df['cf_score']
     )
+    avg_daily_rate = freelancers_df['hourly_rate'].mean() * 8 * 3  # 3 days work
+    if job_input['budget'] < avg_daily_rate * 0.5:  # Arbitrary threshold (50% of avg)
+        return [{
+            "name": "Budget too low",
+            "skills": [],
+            "experience_years": 0,
+            "hourly_rate": 0,
+            "message": (
+                f"Your budget ${job_input['budget']} may be too low "
+                f"for freelancers with the required skills. "
+                f"Consider increasing it above ${int(avg_daily_rate * 0.5)}."
+            )
+        }]
     top5 = freelancers_df.sort_values(by='final_score', ascending=False).head(5)
     return top5[['freelancer_id', 'name', 'skills', 'experience_years', 'hourly_rate', 'final_score']].to_dict(orient='records')
 
