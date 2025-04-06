@@ -11,7 +11,7 @@ from surprise import SVD, Dataset, Reader
 app = Flask(__name__)
 
 # Load data (no pre-trained model anymore)
-with open("model1 (3).pkl", "rb") as f:
+with open("model.pkl", "rb") as f:
     data = pickle.load(f)
 
 freelancers_df = data["freelancers_df"]
