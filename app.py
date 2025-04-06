@@ -1,22 +1,25 @@
-import flask
 from flask import Flask, request, jsonify
 import pickle
 import pandas as pd
+import os
+
+# ML libraries
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from surprise import SVD, Dataset, Reader
 
 app = Flask(__name__)
 
-# Load model and data
+# Load data (no pre-trained model anymore)
 with open("model1 (3).pkl", "rb") as f:
     data = pickle.load(f)
 
 freelancers_df = data["freelancers_df"]
 interactions = data["interactions"]
-svd_model = data["svd_model"]
 
-# TF-IDF + Content function
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-
+# -------------------------
+# Content-based scoring
+# -------------------------
 def compute_content_score(job_input, df):
     df = df.copy()
     df['skills_str'] = df['skills'].apply(lambda x: ' '.join(x))
@@ -44,16 +47,29 @@ def compute_content_score(job_input, df):
     )
     return df
 
-def get_cf_scores(client_id, df):
+# -------------------------
+# Collaborative Filtering (dynamic SVD training)
+# -------------------------
+def get_cf_scores(client_id, df, interactions):
     df = df.copy()
+    reader = Reader(rating_scale=(1, 5))
+    dataset = Dataset.load_from_df(interactions[["client_id", "freelancer_id", "rating"]], reader)
+    trainset = dataset.build_full_trainset()
+
+    model = SVD()
+    model.fit(trainset)
+
     cf_scores = []
     for _, row in df.iterrows():
-        prediction = svd_model.predict(client_id, row['freelancer_id'])
+        prediction = model.predict(client_id, row['freelancer_id'])
         cf_scores.append(prediction.est)
+
     df['cf_score'] = cf_scores
     return df
 
-# Route: Recommender
+# -------------------------
+# API Endpoint
+# -------------------------
 @app.route('/recommend', methods=['POST'])
 def recommend():
     data = request.get_json()
@@ -62,21 +78,26 @@ def recommend():
         return jsonify({'error': 'Missing fields'}), 400
 
     freelancers = compute_content_score(data, freelancers_df)
-    freelancers = get_cf_scores(data['client_id'], freelancers)
+    freelancers = get_cf_scores(data['client_id'], freelancers, interactions)
 
-    freelancers['final_score'] = 0.6 * freelancers['content_score'] + 0.4 * freelancers['cf_score']
+    freelancers['final_score'] = (
+        0.6 * freelancers['content_score'] +
+        0.4 * freelancers['cf_score']
+    )
     top5 = freelancers.sort_values(by='final_score', ascending=False).head(5)
 
     return jsonify(top5[['freelancer_id', 'name', 'skills', 'final_score']].to_dict(orient='records'))
 
+# -------------------------
 # Health check
+# -------------------------
 @app.route('/')
 def home():
     return "Freelancer Recommendation System is running!"
 
-import os
-
+# -------------------------
+# Run the app
+# -------------------------
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
