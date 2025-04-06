@@ -1,25 +1,22 @@
-from flask import Flask, request, jsonify
-import pickle
+from flask import Flask, request, jsonify, render_template
+from surprise import Dataset, Reader, SVD
 import pandas as pd
-import os
-
-# ML libraries
+import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from surprise import SVD, Dataset, Reader
+import os
 
 app = Flask(__name__)
 
-# Load data (no pre-trained model anymore)
+# Load the data (assuming it includes freelancers_df and interactions)
 with open("model.pkl", "rb") as f:
     data = pickle.load(f)
 
 freelancers_df = data["freelancers_df"]
 interactions = data["interactions"]
 
-# -------------------------
-# Content-based scoring
-# -------------------------
+# ---------- Recommender Functions ----------
+
 def compute_content_score(job_input, df):
     df = df.copy()
     df['skills_str'] = df['skills'].apply(lambda x: ' '.join(x))
@@ -47,15 +44,10 @@ def compute_content_score(job_input, df):
     )
     return df
 
-# -------------------------
-# Collaborative Filtering (dynamic SVD training)
-# -------------------------
 def get_cf_scores(client_id, df, interactions):
-    df = df.copy()
     reader = Reader(rating_scale=(1, 5))
-    dataset = Dataset.load_from_df(interactions[["client_id", "freelancer_id", "rating"]], reader)
-    trainset = dataset.build_full_trainset()
-
+    data = Dataset.load_from_df(interactions[["client_id", "freelancer_id", "rating"]], reader)
+    trainset = data.build_full_trainset()
     model = SVD()
     model.fit(trainset)
 
@@ -63,41 +55,41 @@ def get_cf_scores(client_id, df, interactions):
     for _, row in df.iterrows():
         prediction = model.predict(client_id, row['freelancer_id'])
         cf_scores.append(prediction.est)
-
     df['cf_score'] = cf_scores
     return df
 
-# -------------------------
-# API Endpoint
-# -------------------------
-@app.route('/recommend', methods=['POST'])
-def recommend():
-    data = request.get_json()
-    required_fields = ['client_id', 'required_skills', 'budget']
-    if not all(field in data for field in required_fields):
-        return jsonify({'error': 'Missing fields'}), 400
+def hybrid_recommendation(job_input, freelancers_df, interactions):
+    freelancers_df = compute_content_score(job_input, freelancers_df)
+    freelancers_df = get_cf_scores(job_input["client_id"], freelancers_df, interactions)
 
-    freelancers = compute_content_score(data, freelancers_df)
-    freelancers = get_cf_scores(data['client_id'], freelancers, interactions)
-
-    freelancers['final_score'] = (
-        0.6 * freelancers['content_score'] +
-        0.4 * freelancers['cf_score']
+    freelancers_df['final_score'] = (
+        0.6 * freelancers_df['content_score'] + 0.4 * freelancers_df['cf_score']
     )
-    top5 = freelancers.sort_values(by='final_score', ascending=False).head(5)
+    top5 = freelancers_df.sort_values(by='final_score', ascending=False).head(5)
+    return top5[['freelancer_id', 'name', 'skills', 'experience_years', 'hourly_rate', 'final_score']].to_dict(orient='records')
 
-    return jsonify(top5[['freelancer_id', 'name', 'skills', 'final_score']].to_dict(orient='records'))
+# ---------- Routes ----------
 
-# -------------------------
-# Health check
-# -------------------------
 @app.route('/')
 def home():
-    return "Freelancer Recommendation System is running!"
+    return render_template('index.html', recommendations=None)
 
-# -------------------------
-# Run the app
-# -------------------------
+@app.route('/recommend_web', methods=['POST'])
+def recommend_web():
+    client_id = int(request.form.get('client_id'))
+    budget = float(request.form.get('budget'))
+    skills = request.form.getlist('required_skills')
+
+    job_input = {
+        'client_id': client_id,
+        'budget': budget,
+        'required_skills': skills
+    }
+
+    recommendations = hybrid_recommendation(job_input, freelancers_df, interactions)
+    return render_template('index.html', recommendations=recommendations)
+
+# ---------- Run ----------
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host='0.0.0.0', port=port)
