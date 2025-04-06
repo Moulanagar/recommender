@@ -8,7 +8,7 @@ import os
 
 app = Flask(__name__)
 
-# Load the data (assuming it includes freelancers_df and interactions)
+# Load the data (includes freelancers_df and interactions)
 with open("model.pkl", "rb") as f:
     data = pickle.load(f)
 
@@ -31,8 +31,10 @@ def compute_content_score(job_input, df):
     df['rating_score'] = df['avg_rating'] / 5
     df['job_score'] = df['jobs_completed'] / df['jobs_completed'].max()
 
-    daily_rate = df['hourly_rate'] * 8 * 3
-    df['budget_score'] = job_input['budget'] / (daily_rate + 1)
+    # Update budget score using timeline
+    daily_rate = df['hourly_rate'] * 8
+    estimated_cost = daily_rate * job_input['timeline']
+    df['budget_score'] = job_input['budget'] / (estimated_cost + 1)
     df['budget_score'] = df['budget_score'].apply(lambda x: 1 if x >= 1 else x)
 
     df['content_score'] = (
@@ -65,19 +67,22 @@ def hybrid_recommendation(job_input, freelancers_df, interactions):
     freelancers_df['final_score'] = (
         0.6 * freelancers_df['content_score'] + 0.4 * freelancers_df['cf_score']
     )
-    avg_daily_rate = freelancers_df['hourly_rate'].mean() * 8 * 3  # 3 days work
-    if job_input['budget'] < avg_daily_rate * 0.5:  # Arbitrary threshold (50% of avg)
+
+    avg_daily_rate = freelancers_df['hourly_rate'].mean() * 8 * job_input['timeline']
+    if job_input['budget'] < avg_daily_rate * 0.5:
         return [{
             "name": "Budget too low",
             "skills": [],
             "experience_years": 0,
             "hourly_rate": 0,
+            "final_score": 0,
             "message": (
                 f"Your budget ${job_input['budget']} may be too low "
-                f"for freelancers with the required skills. "
+                f"for freelancers with the required skills and timeline. "
                 f"Consider increasing it above ${int(avg_daily_rate * 0.5)}."
             )
         }]
+    
     top5 = freelancers_df.sort_values(by='final_score', ascending=False).head(5)
     return top5[['freelancer_id', 'name', 'skills', 'experience_years', 'hourly_rate', 'final_score']].to_dict(orient='records')
 
@@ -92,11 +97,13 @@ def recommend_web():
     client_id = int(request.form.get('client_id'))
     budget = float(request.form.get('budget'))
     skills = request.form.getlist('required_skills')
+    timeline = int(request.form.get('timeline'))  # NEW timeline input
 
     job_input = {
         'client_id': client_id,
         'budget': budget,
-        'required_skills': skills
+        'required_skills': skills,
+        'timeline': timeline
     }
 
     recommendations = hybrid_recommendation(job_input, freelancers_df, interactions)

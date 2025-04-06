@@ -89,7 +89,6 @@
 
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 </head>
 <body>
     <div class="container">
@@ -102,16 +101,70 @@
             <label for="budget">Budget ($)</label>
             <input type="number" name="budget" required>
 
+            <label for="timeline">Project Timeline (in days)</label>
+            <input type="number" name="timeline" required placeholder="e.g. 10">
+
             <label for="skills">Required Skills</label>
             <select id="skills" name="required_skills" multiple="multiple" style="width: 100%">
-                <option value="Python">Python</option>
-                <option value="Django">Django</option>
-                <option value="Flask">Flask</option>
-                <option value="React">React</option>
-                <option value="TensorFlow">TensorFlow</option>
-                <option value="AWS">AWS</option>
-                <option value="JavaScript">JavaScript</option>
-            </select>
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="React">React</option>
+            <option value="Angular">Angular</option>
+            <option value="Vue">Vue</option>
+            <option value="Django">Django</option>
+            <option value="Flask">Flask</option>
+            <option value="FastAPI">FastAPI</option>
+            <option value="TensorFlow">TensorFlow</option>
+            <option value="PyTorch">PyTorch</option>
+            <option value="Scikit-learn">Scikit-learn</option>
+            <option value="Pandas">Pandas</option>
+            <option value="NumPy">NumPy</option>
+            <option value="OpenCV">OpenCV</option>
+            <option value="Keras">Keras</option>
+            <option value="SQL">SQL</option>
+            <option value="PostgreSQL">PostgreSQL</option>
+            <option value="MySQL">MySQL</option>
+            <option value="MongoDB">MongoDB</option>
+            <option value="Firebase">Firebase</option>
+            <option value="AWS">AWS</option>
+            <option value="Azure">Azure</option>
+            <option value="GCP">GCP</option>
+            <option value="Docker">Docker</option>
+            <option value="Kubernetes">Kubernetes</option>
+            <option value="CI/CD">CI/CD</option>
+            <option value="Git">Git</option>
+            <option value="GitHub">GitHub</option>
+            <option value="Bitbucket">Bitbucket</option>
+            <option value="Java">Java</option>
+            <option value="C++">C++</option>
+            <option value="C#">C#</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Ruby">Ruby</option>
+            <option value="PHP">PHP</option>
+            <option value="Laravel">Laravel</option>
+            <option value="Node.js">Node.js</option>
+            <option value="Express.js">Express.js</option>
+            <option value="NLP">NLP</option>
+            <option value="Computer Vision">Computer Vision</option>
+            <option value="LLMs">LLMs</option>
+            <option value="Chatbot">Chatbot</option>
+            <option value="HuggingFace">HuggingFace</option>
+            <option value="Tableau">Tableau</option>
+            <option value="Power BI">Power BI</option>
+            <option value="Excel">Excel</option>
+            <option value="HTML">HTML</option>
+            <option value="CSS">CSS</option>
+            <option value="SASS">SASS</option>
+            <option value="Redux">Redux</option>
+            <option value="GraphQL">GraphQL</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Bootstrap">Bootstrap</option>
+            <option value="Tailwind">Tailwind</option>
+            <option value="Figma">Figma</option>
+            <option value="UI/UX">UI/UX</option>
+        </select>
+
 
             <button type="submit">Get Recommendations</button>
         </form>
