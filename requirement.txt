@@ -1,5 +1,6 @@
 flask
 scikit-learn
 pandas
-scikit-surprise
+scikit-learn
+scikit-surprise==1.1.3
 numpy<2
