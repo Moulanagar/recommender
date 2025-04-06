@@ -84,7 +84,7 @@ def hybrid_recommendation(job_input, freelancers_df, interactions):
         }]
     
     top5 = freelancers_df.sort_values(by='final_score', ascending=False).head(5)
-    return top5[['freelancer_id', 'name', 'skills', 'experience_years', 'hourly_rate', 'final_score']].to_dict(orient='records')
+    return top5[['freelancer_id', 'name', 'skills', 'experience_years', 'hourly_rate']].to_dict(orient='records')
 
 # ---------- Routes ----------
 

@@ -3,8 +3,10 @@ import requests
 url = "https://recommender-5-inq4.onrender.com/recommend"
 data = {
     "client_id": 1,
+    "budget": 200,
     "required_skills": ["python", "flask"],
-    "budget": 200
+    "timeline": 3
+    
 }
 
 response = requests.post(url, json=data)
