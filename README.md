@@ -81,7 +81,7 @@ POST /recommend_web
 ### Hosted On
 
 - **Render**
-
+- **UptimeRobot- For site activation**
 ### Deployment Steps
 
 1. Push code to GitHub.
