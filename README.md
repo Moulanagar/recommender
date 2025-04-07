@@ -103,7 +103,7 @@ POST /recommend_web
 1. Clone the repo:
    ```bash
    git clone https://github.com/Moulanagar/recommender.git
-   cd freelancer-recommender
+   cd recommender
    ```
 
 2. Install requirements:
@@ -136,5 +136,5 @@ POST /recommend_web
 
 This project demonstrates how a hybrid recommender system can intelligently match clients to the most suitable freelancers by combining historical interaction data and semantic skill matching.
 
-many improovements can be done and model can be improoved based on availability of data.
+Many improovements can be done and model can be improoved based on availability of data.
 ---
