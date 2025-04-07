@@ -102,7 +102,7 @@ POST /recommend_web
 
 1. Clone the repo:
    ```bash
-   git clone https://github.com/your-username/freelancer-recommender.git
+   git clone https://github.com/Moulanagar/recommender.git
    cd freelancer-recommender
    ```
 
@@ -128,7 +128,7 @@ POST /recommend_web
 ## 📎 Links
 
 - 🔗 GitHub Repository: https://github.com/Moulanagar/recommender
-- 🌍 Hosted API: https://recommender-13.onrender.com
+- 🌍 Hosted API: https://recommender-14.onrender.com
 
 ---
 
