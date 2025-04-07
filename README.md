@@ -128,7 +128,7 @@ POST /recommend_web
 ## 📎 Links
 
 - 🔗 GitHub Repository: https://github.com/Moulanagar/recommender
-- 🌍 Hosted API: https://recommender-14.onrender.com
+- 🌍 Hosted API: https://recommender-15.onrender.com
 
 ---
 
